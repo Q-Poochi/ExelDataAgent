@@ -1,0 +1,6 @@
+@DataAgent.API_HostAddress = http://localhost:5196
+
+GET {{DataAgent.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

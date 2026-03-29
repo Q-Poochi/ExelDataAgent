@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataAgent | Real-time Analysis Monitor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .status-badge {
+            padding: 10px 20px;
+            border-radius: 99px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            display: inline-block;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        .connected { background: #064e3b; color: #34d399; }
+        .disconnected { background: #450a0a; color: #f87171; }
+
+        .job-card {
+            background: var(--card);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: slideIn 0.5s ease;
+        }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } }
+        
+        .progress-container {
+            height: 8px;
+            background: #334155;
+            border-radius: 4px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            width: 0%;
+            transition: width 0.8s ease-in-out;
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
+        }
+        .job-id { color: #94a3b8; font-family: monospace; font-size: 0.85rem; }
+        .job-status { font-weight: 700; color: #60a5fa; text-transform: uppercase; }
+        .result-link { color: #34d399; text-decoration: none; border-bottom: 1px dashed; }
+        
+        ul { list-style: none; padding: 0; width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 DataAgent Live Analysis</h1>
+        <div id="conn-status" class="status-badge disconnected">Connecting SignalR...</div>
+        
+        <ul id="job-list">
+            <li class="job-card" style="text-align: center; color: #94a3b8;">
+                Chưa có cập nhật nào. Hãy test n8n callback ngay...
+            </li>
+        </ul>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:5196";
+        
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl(`${API_URL}/hubs/analysis`)
+            .withAutomaticReconnect()
+            .build();
+
+        async function start() {
+            try {
+                await connection.start();
+                console.log("SignalR Connected.");
+                document.getElementById('conn-status').innerText = "SignalR Connected!";
+                document.getElementById('conn-status').className = "status-badge connected";
+            } catch (err) {
+                console.log(err);
+                setTimeout(start, 5000);
+            }
+        }
+
+        connection.on("ReceiveJobUpdate", (jobId, update) => {
+            console.log("Real-time Update:", { jobId, update });
+            updateJobUI(jobId, update);
+        });
+
+        function updateJobUI(jobId, update) {
+            const list = document.getElementById('job-list');
+            let element = document.getElementById(`job-${jobId}`);
+
+            // Remove placeholder if it exists
+            if(list.children.length === 1 && list.children[0].style.textAlign === 'center') {
+                list.innerHTML = '';
+            }
+
+            if (!element) {
+                element = document.createElement('li');
+                element.id = `job-${jobId}`;
+                element.className = 'job-card';
+                list.prepend(element);
+            }
+
+            const statusColors = {
+                'Pending': '#94a3b8',
+                'Processing': '#60a5fa',
+                'Succeeded': '#34d399',
+                'Failed': '#f87171'
+            };
+
+            const statusText = update.status === 0 ? 'Pending' : 
+                               update.status === 1 ? 'Processing' : 
+                               update.status === 2 ? 'Succeeded' : 
+                               update.status === 3 ? 'Failed' : 'Unknown';
+
+            element.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="job-id">JOB: ${jobId.substring(0,8)}...</span>
+                    <span class="job-status" style="color: ${statusColors[statusText] || '#fff'}">${statusText}</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${update.progress}%"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                    <span>Tiến độ: ${update.progress}%</span>
+                    ${update.resultUrl ? `<a href="${update.resultUrl}" target="_blank" class="result-link">Xem kết quả</a>` : ''}
+                </div>
+                ${update.errorMessage ? `<p style="color: #f87171; font-size: 0.8rem; margin-top: 10px;">Error: ${update.errorMessage}</p>` : ''}
+            `;
+        }
+
+        start();
+    </script>
+</body>
+</html>
