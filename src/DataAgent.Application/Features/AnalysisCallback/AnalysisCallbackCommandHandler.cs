@@ -14,18 +14,18 @@ public class AnalysisCallbackCommandHandler : IRequestHandler<AnalysisCallbackCo
 {
     private readonly IConfiguration _config;
     private readonly IAnalysisJobRepository _jobRepository;
-    private readonly IAnalysisHubContext _hubContext;
+    private readonly IAnalysisNotificationService _notificationService;
     private readonly Microsoft.Extensions.Logging.ILogger<AnalysisCallbackCommandHandler> _logger;
 
     public AnalysisCallbackCommandHandler(
         IConfiguration config, 
         IAnalysisJobRepository jobRepository, 
-        IAnalysisHubContext hubContext,
+        IAnalysisNotificationService notificationService,
         Microsoft.Extensions.Logging.ILogger<AnalysisCallbackCommandHandler> logger)
     {
         _config = config;
         _jobRepository = jobRepository;
-        _hubContext = hubContext;
+        _notificationService = notificationService;
         _logger = logger;
     }
 
@@ -68,18 +68,20 @@ public class AnalysisCallbackCommandHandler : IRequestHandler<AnalysisCallbackCo
         await _jobRepository.UpdateAsync(job, cancellationToken);
         _logger.LogInformation("Job {JobId} updated to {Status}", job.Id, job.Status);
 
-        // Notify over SignalR
-        var statusDto = new JobStatusDto
+        // Notify over SignalR via Group
+        var updateDto = new JobUpdateDto
         {
-            JobId = job.Id,
+            JobId = job.Id.ToString(),
             Status = job.Status,
             Progress = job.Progress,
+            CurrentStep = payload.Status, 
+            Message = payload.ErrorMessage ?? "Job update received",
             ResultUrl = job.ResultUrl,
-            ErrorMessage = job.ErrorMessage
+            UpdatedAt = job.UpdatedAt ?? DateTime.UtcNow
         };
 
         _logger.LogInformation("Pushing SignalR update for job {JobId}...", job.Id);
-        await _hubContext.NotifyJobUpdateAsync(job.Id, statusDto);
+        await _notificationService.NotifyJobUpdate(job.Id.ToString(), updateDto);
 
         return true;
     }

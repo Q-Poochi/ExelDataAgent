@@ -15,3 +15,4 @@ C:\Project\DAagent\src\DataAgent.Infrastructure\obj\Debug\net8.0\DataAgent.Infra
 C:\Project\DAagent\src\DataAgent.Infrastructure\obj\Debug\net8.0\refint\DataAgent.Infrastructure.dll
 C:\Project\DAagent\src\DataAgent.Infrastructure\obj\Debug\net8.0\DataAgent.Infrastructure.pdb
 C:\Project\DAagent\src\DataAgent.Infrastructure\obj\Debug\net8.0\ref\DataAgent.Infrastructure.dll
+C:\Project\DAagent\src\DataAgent.Infrastructure\obj\Debug\net8.0\DataAgent.Infrastructure.sourcelink.json

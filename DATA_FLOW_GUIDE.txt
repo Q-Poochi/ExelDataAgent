@@ -1,0 +1,64 @@
+================================================================================
+KIẾN TRÚC DỮ LIỆU DATAAGENT (DATA FLOW GUIDE)
+================================================================================
+
+Tai lieu nay giai thich cach van hanh "Bat dong bo - Realtime" cua he thong.
+Day la mo hinh chuan cho cac ứng dung xu ly du lieu nang (AI, Big Data).
+
+--------------------------------------------------------------------------------
+1. CÁC THÀNH PHẦN CHÍNH
+--------------------------------------------------------------------------------
+- API (ASP.NET 8): Cua ngo tiep nhan moi yeu cau tu nguoi dung.
+- MinIO: Kho luu tru file (Object Storage).
+- Hangfire: Trình quan ly chay ngam (dam bao tac vu luon hoan thanh).
+- n8n: Bo nao AI (noi thuc hien logic phan tich, goi Claude/ChatGPT).
+- SignalR: Duong truyen tin nhan tuc thoi (Real-time push).
+- Chart Service (Python): Chuyen gia ve bieu do va xuat PDF bao cao.
+
+--------------------------------------------------------------------------------
+2. QUY TRÌNH 5 BƯỚC (STEP-BY-STEP)
+--------------------------------------------------------------------------------
+
+BUO'C 1: TẢI FILE (UPLOAD)
+- Ban gui file len API.
+- API luu file vao MinIO va ghi thong tin metadata vao SQL Server.
+- Ban nhan ve mot cái ID goi la "fileId".
+
+BUO'C 2: KÍCH HOẠT PHÂN TÍCH (START ANALYSIS)
+- Ban gui request kem "fileId" vao API.
+- API tao mot Job trong database (trang thai Pending).
+- API nem cong viec nay vao Hangfire (Run in background).
+- Ban nhan ve ngay lap tuc "jobId" de theo doi (Khong phai cho doi).
+
+BUO'C 3: GỌI N8N ( xỬ LÝ NGẦM )
+- Hangfire tu dong chay class "TriggerN8NWorkflowJob".
+- No tao mot link bi mat de n8n co the lay file tu MinIO.
+- No gui lenh sang n8n (POST) kem "jobId", "fileUrl" va "callbackUrl".
+
+BUO'C 4: AI PHÂN TÍCH ( TẠI N8N )
+- n8n nhan lenh va bat dau chay Workflow AI cua ban.
+- Trong qua trinh chay, n8n co the goi ve API de bao cao: "Toi dang lam X%...".
+
+BUO'C 4.5: VE~ BIE^?U DO^` & TA.O PDF (CHART SERVICE)
+- n8n gui code Python (do AI viet) sang "Chart Service".
+- Chart Service chay code trong moi truong an toan, ve hinh va gui lai file anh (Base64).
+- n8n gom tat ca insights va anh do thanh 1 yeu cau tao PDF.
+- Chart Service render PDF xon va tu dong upload len MinIO, tra lai link tai file.
+
+BUO'C 5: TRẢ KẾT QUẢ VÀ BÁO REAL-TIME (CALLBACK & SIGNALR)
+- Khi n8n lam xong, no goi ve dia chi Callback tren API.
+- API nhan duoc:
+    1. Cap nhat Database trang thai Job thanh "Succeeded".
+    2. Dung SignalR day tin nhan vao Group cua dung cái "jobId" do.
+- Trình duyet cua ban (HTML) dang "lang nghe" Group nay se tu dong nhay so len 100% va hien nut tai ve!
+
+--------------------------------------------------------------------------------
+3. VÌ SAO PHẢI LÀM PHỨC TẠP NHƯ THẾ?
+--------------------------------------------------------------------------------
+- Tránh treo Server: Phan tich file lon co the mat 10 phut, viec chay ngam giup Server luon san sang nhan lenh khac.
+- Trải nghiệm cao cấp: Nguoi dung khong phai F5 trang web, ket qua tu dong bay ve kieu Real-time.
+- Bao mat: n8n va API giao tiep qua chu ky HMAC, tranh viec bi gia danh du lieu.
+
+================================================================================
+Ghi chu: Luon mo trang HTML Tracking TRUO'C khi n8n gui callback de bat duoc tin nhan!
+================================================================================

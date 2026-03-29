@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Report - {{ file_name }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+            @bottom-right {
+                content: "Page " counter(page) " of " counter(pages);
+                font-family: 'DejaVu Sans', sans-serif;
+                font-size: 8pt;
+                color: #666;
+            }
+        }
+        body {
+            font-family: 'DejaVu Sans', sans-serif;
+            color: #333;
+            line-height: 1.6;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #2563eb;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+        }
+        .stats-box {
+            background-color: #f8fafc;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            margin-bottom: 30px;
+        }
+        .chart-container {
+            page-break-inside: avoid;
+            margin-bottom: 40px;
+        }
+        h1, h2, h3 { color: #1e3a8a; }
+        .insights {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 40px;
+        }
+        pre { background: #f1f5f9; padding: 10px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Data Analysis Report</h1>
+        <h3>{{ file_name }}</h3>
+        <p>Generated on: {{ date_created }}</p>
+    </div>
+
+    <div class="stats-box">
+        <h2>Dataset Overview</h2>
+        <ul>
+            <li><strong>Total Rows:</strong> {{ stats.rowCount }}</li>
+            <li><strong>Total Columns:</strong> {{ stats.colCount }}</li>
+            {% if stats.summary %}
+                <li><strong>Summary:</strong> {{ stats.summary | string }}</li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <div class="charts">
+        <h2>Visualizations</h2>
+        {% for chart in charts %}
+            <div class="chart-container">
+                <h4>Chart {{ loop.index }}</h4>
+                <img src="data:{{ chart.mime_type }};base64,{{ chart.base64 }}" alt="Chart {{ loop.index }}">
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="insights">
+        <h2>AI Insights</h2>
+        <div>
+            <!-- Render markdown insights as raw HTML if needed. We assume raw text/simple HTML here. -->
+            <p>{{ insights | replace('\n', '<br>') }}</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -209,3 +209,5 @@ C:\Project\DAagent\src\DataAgent.API\bin\Debug\net8.0\Microsoft.Extensions.Optio
 C:\Project\DAagent\src\DataAgent.API\bin\Debug\net8.0\RBush.dll
 C:\Project\DAagent\src\DataAgent.API\bin\Debug\net8.0\SixLabors.Fonts.dll
 C:\Project\DAagent\src\DataAgent.API\bin\Debug\net8.0\System.IO.Packaging.dll
+C:\Project\DAagent\src\DataAgent.API\bin\Debug\net8.0\DataAgent.API.staticwebassets.runtime.json
+C:\Project\DAagent\src\DataAgent.API\obj\Debug\net8.0\DataAgent.API.sourcelink.json

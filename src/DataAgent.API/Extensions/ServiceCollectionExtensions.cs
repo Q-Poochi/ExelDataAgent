@@ -12,8 +12,12 @@ public static class ServiceCollectionExtensions
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
         
-        services.AddSignalR();
-        services.AddScoped<IAnalysisHubContext, SignalRHubContext>();
+        services.AddSignalR(options =>
+        {
+            options.MaximumReceiveMessageSize = 1024 * 1024; // 1MB
+        });
+        // Use the new Notification Service instead of direct HubContext abstraction
+        services.AddScoped<IAnalysisNotificationService, AnalysisNotificationService>();
         
         return services;
     }

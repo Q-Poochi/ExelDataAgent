@@ -13,3 +13,4 @@ C:\Project\DAagent\src\DataAgent.Application\obj\Debug\net8.0\DataAgent.Applicat
 C:\Project\DAagent\src\DataAgent.Application\obj\Debug\net8.0\refint\DataAgent.Application.dll
 C:\Project\DAagent\src\DataAgent.Application\obj\Debug\net8.0\DataAgent.Application.pdb
 C:\Project\DAagent\src\DataAgent.Application\obj\Debug\net8.0\ref\DataAgent.Application.dll
+C:\Project\DAagent\src\DataAgent.Application\obj\Debug\net8.0\DataAgent.Application.sourcelink.json
