@@ -1,0 +1,393 @@
+{
+  "name": "DataAgent - Analysis Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "analysis-trigger",
+        "authentication": "headerAuth",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "node-1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "analysis-trigger-webhook-dataagent"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.body.fileUrl }}",
+        "responseFormat": "file",
+        "options": {}
+      },
+      "id": "node-2",
+      "name": "Download File",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "binaryPropertyName": "data",
+        "options": {
+          "headerRow": true
+        }
+      },
+      "id": "node-3",
+      "name": "Extract Data",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "typeVersion": 2,
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst data = items.map(item => item.json);\nconst headers = Object.keys(data[0] || {});\nconst sampleRows = data.slice(0, 100);\n\nconst webhookData = $('Webhook').first().json.body;\n\nreturn [{\n  json: {\n    jobId: webhookData.jobId,\n    callbackUrl: webhookData.callbackUrl,\n    prompt: webhookData.prompt,\n    headers: headers,\n    sampleRows: sampleRows,\n    fullData: data.map(row => headers.map(h => row[h]))\n  }\n}];"
+      },
+      "id": "node-4",
+      "name": "Format Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        600,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={{ $env.GEMINI_API_KEY }}",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"Bạn là data analyst. Phân tích schema CSV và sinh Python code dùng pandas + matplotlib.\\nSchema: {{ JSON.stringify($json.headers) }}\\nSample: {{ JSON.stringify($json.sampleRows) }}\\nCâu hỏi: {{ $json.prompt }}\\n\\nHãy trả về JSON: { \\\"chartType\\\": \\\"string\\\", \\\"pythonCode\\\": \\\"string\\\", \\\"analysisDescription\\\": \\\"string\\\" }\"\n        }\n      ]\n    }\n  ],\n  \"generationConfig\": {\n    \"maxOutputTokens\": 2000\n  }\n}",
+        "options": {}
+      },
+      "id": "node-5",
+      "name": "Gemini 1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        800,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "let text = $json.candidates[0].content.parts[0].text;\nif(text.startsWith('```json')) text = text.substring(7);\nif(text.startsWith('```')) text = text.substring(3);\nif(text.endsWith('```')) text = text.substring(0, text.length - 3);\n\nconst parsed = JSON.parse(text.trim());\n\nconst previous = $('Format Data').first().json;\nreturn [{\n  json: {\n    ...previous,\n    chartType: parsed.chartType,\n    pythonCode: parsed.pythonCode,\n    analysisDescription: parsed.analysisDescription\n  }\n}];"
+      },
+      "id": "node-6",
+      "name": "Parse Gemini JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://chart-service:8000/execute",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={\n  \"code\": {{ JSON.stringify($json.pythonCode) }},\n  \"data\": {{ JSON.stringify($json.fullData) }},\n  \"headers\": {{ JSON.stringify($json.headers) }},\n  \"job_id\": \"{{ $json.jobId }}\"\n}",
+        "options": {}
+      },
+      "id": "node-7",
+      "name": "Execute Chart Code",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1200,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={{ $env.GEMINI_API_KEY }}",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"Dựa vào kết quả thống kê sau, viết insights phân tích bằng tiếng Việt (3-5 đoạn): {{ JSON.stringify($json.stats) }}\"\n        }\n      ]\n    }\n  ],\n  \"generationConfig\": {\n    \"maxOutputTokens\": 1000\n  }\n}",
+        "options": {}
+      },
+      "id": "node-8",
+      "name": "Gemini 2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1400,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://chart-service:8000/build-pdf",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={\n  \"job_id\": \"{{ $('Format Data').first().json.jobId }}\",\n  \"charts\": {{ JSON.stringify($('Execute Chart Code').first().json.charts || []) }},\n  \"insights\": {{ JSON.stringify($json.candidates[0].content.parts[0].text) }},\n  \"file_name\": \"DataAgent_Report\",\n  \"stats\": {{ JSON.stringify($('Execute Chart Code').first().json.stats) }}\n}",
+        "options": {}
+      },
+      "id": "node-9",
+      "name": "Build PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1600,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\nconst secret = \"SuperSecretKeyForDataAgentCallback-ChangeInProduction\";\n\nconst jobId = $('Format Data').first().json.jobId;\nconst pdfUrl = $json.pdfUrl;\n\nconst payload = JSON.stringify({\n  JobId: jobId,\n  Status: \"Succeeded\",\n  ResultUrl: pdfUrl,\n  Message: \"Analysis Completed Successfully\"\n});\n\nconst signature = crypto.createHmac('sha256', secret).update(payload).digest('hex');\n\nreturn [{\n  json: {\n    CallbackUrl: $('Format Data').first().json.callbackUrl,\n    PayloadString: payload,\n    Signature: signature\n  }\n}];"
+      },
+      "id": "node-10",
+      "name": "Sign Callback",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1800,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.CallbackUrl }}",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ $json.PayloadString }}",
+        "options": {},
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Callback-Signature",
+              "value": "={{ $json.Signature }}"
+            }
+          ]
+        }
+      },
+      "id": "node-11",
+      "name": "Send Callback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        2000,
+        0
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "node-12",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "let webhookData = null;\ntry {\n  webhookData = $('Webhook').first().json.body;\n} catch (e) { }\n\nif (!webhookData) return [];\n\nconst crypto = require('crypto');\nconst secret = \"SuperSecretKeyForDataAgentCallback-ChangeInProduction\";\nconst errorMessage = $json.execution.error.message || \"Unknown error\";\n\nconst payload = JSON.stringify({\n  JobId: webhookData.jobId,\n  Status: \"Failed\",\n  Message: errorMessage\n});\n\nconst signature = crypto.createHmac('sha256', secret).update(payload).digest('hex');\n\nreturn [{\n  json: {\n    CallbackUrl: webhookData.callbackUrl,\n    PayloadString: payload,\n    Signature: signature\n  }\n}];"
+      },
+      "id": "node-13",
+      "name": "Sign Error Callback",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.CallbackUrl }}",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ $json.PayloadString }}",
+        "options": {},
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Callback-Signature",
+              "value": "={{ $json.Signature }}"
+            }
+          ]
+        }
+      },
+      "id": "node-14",
+      "name": "Send Error Callback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        400,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Download File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download File": {
+      "main": [
+        [
+          {
+            "node": "Extract Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Data": {
+      "main": [
+        [
+          {
+            "node": "Format Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Data": {
+      "main": [
+        [
+          {
+            "node": "Gemini 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini 1": {
+      "main": [
+        [
+          {
+            "node": "Parse Gemini JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Gemini JSON": {
+      "main": [
+        [
+          {
+            "node": "Execute Chart Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Chart Code": {
+      "main": [
+        [
+          {
+            "node": "Gemini 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini 2": {
+      "main": [
+        [
+          {
+            "node": "Build PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build PDF": {
+      "main": [
+        [
+          {
+            "node": "Sign Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sign Callback": {
+      "main": [
+        [
+          {
+            "node": "Send Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Sign Error Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sign Error Callback": {
+      "main": [
+        [
+          {
+            "node": "Send Error Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

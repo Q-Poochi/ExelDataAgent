@@ -61,7 +61,7 @@ def build_pdf(job_id: str, charts: list, insights: str, file_name: str, stats: d
 
     # 3. Convert HTML to PDF using WeasyPrint
     pdf_buffer = io.BytesIO()
-    HTML(string=html_out).write_pdf(pdf_buffer)
+    HTML(string=html_out).write_pdf(target=pdf_buffer)
     pdf_buffer.seek(0)
     
     # 4. Upload to MinIO

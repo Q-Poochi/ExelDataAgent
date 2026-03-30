@@ -46,19 +46,35 @@ BUO'C 4.5: VE~ BIE^?U DO^` & TA.O PDF (CHART SERVICE)
 - Chart Service render PDF xon va tu dong upload len MinIO, tra lai link tai file.
 
 BUO'C 5: TRẢ KẾT QUẢ VÀ BÁO REAL-TIME (CALLBACK & SIGNALR)
-- Khi n8n lam xong, no goi ve dia chi Callback tren API.
-- API nhan duoc:
-    1. Cap nhat Database trang thai Job thanh "Succeeded".
-    2. Dung SignalR day tin nhan vao Group cua dung cái "jobId" do.
-- Trình duyet cua ban (HTML) dang "lang nghe" Group nay se tu dong nhay so len 100% va hien nut tai ve!
+- Sau khi n8n hoàn tất (xem chi tiết ở mục 3), nó sẽ gọi về Webhook Callback của API C#.
+- API C# thực hiện 2 việc quan trọng:
+     1. Cập nhật Database: Chuyển Job sang "Succeeded" và lưu link PDF.
+     2. Đẩy SignalR: Gửi tin nhắn thực tế tới đúng nhóm "jobId" đang chờ.
+- [LƯU Ý]: n8n KHÔNG trực tiếp đẩy SignalR. n8n chỉ là "người làm thuê", C# mới là "người báo tin".
 
 --------------------------------------------------------------------------------
-3. VÌ SAO PHẢI LÀM PHỨC TẠP NHƯ THẾ?
+3. CHI TIẾT WORKFLOW N8N (8 NODE CHỦ CHỐT)
 --------------------------------------------------------------------------------
-- Tránh treo Server: Phan tich file lon co the mat 10 phut, viec chay ngam giup Server luon san sang nhan lenh khac.
-- Trải nghiệm cao cấp: Nguoi dung khong phai F5 trang web, ket qua tu dong bay ve kieu Real-time.
-- Bao mat: n8n va API giao tiep qua chu ky HMAC, tranh viec bi gia danh du lieu.
+Khi n8n nhận lệnh (Webhook), nó thực hiện chuỗi hành động sau:
+1. Webhook (Receive): Tiếp nhận jobId, fileUrl, và prompt từ C#.
+2. Download File: Tải file thô từ MinIO về bộ nhớ n8n.
+3. Extract Data: Dùng node "Spreadsheet File" để parse Excel/CSV thành JSON.
+4. Format Data (Code): Lọc lấy 100 dòng đầu để "mớm" cho AI (Tiết kiệm Token).
+5. Gemini 1 (AI): Phân tích schema và tự viết Python Code để vẽ biểu đồ.
+6. Execute Chart: Gửi Python Code sang "Chart Service" để render ảnh Base64.
+7. Gemini 2 (AI): Dựa trên số liệu thống kê để viết Insights (nhận xét) tiếng Việt.
+8. Build PDF & Callback: Gom ảnh + Insights tạo file PDF và ký tên HMAC gửi về C#.
+
+--------------------------------------------------------------------------------
+4. VÌ SAO PHẢI LÀM PHỨC TẠP NHƯ THẾ?
+--------------------------------------------------------------------------------
+- Tránh treo Server: Phân tích file lớn có thể mất 10 phút, việc chay ngầm giúp Server luôn san sàng nhận lệnh khác.
+- Trải nghiệm cao cấp: Người dùng không phải F5 trang web, kết quả tự động hiện ra nhờ SignalR.
+- Bảo mật tuyệt đối: n8n và API giao tiếp qua chữ ký HMAC-SHA256, không ai có thể giả danh kết quả gửi về cho Server của bạn.
 
 ================================================================================
-Ghi chu: Luon mo trang HTML Tracking TRUO'C khi n8n gui callback de bat duoc tin nhan!
+Ghi chú: Luôn mở trang HTML Tracking TRƯỚC khi n8n gửi callback để bắt được tin nhắn SignalR!
+Sau khi dữ liệu chạy được trên dashboard thì tiến hành khôi phục bảo mật
+1.Mở file C# ra, bỏ dấu Comment /* ... */ ở đoạn kiểm tra HMAC.
+2.Trong n8n, dùng node Crypto để tạo chữ ký thật dựa trên Secret Key.
 ================================================================================
