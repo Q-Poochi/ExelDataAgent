@@ -5,5 +5,5 @@ namespace DataAgent.Application.Interfaces;
 
 public interface IEmailService
 {
-    Task SendReportEmailAsync(string recipientEmail, string subject, string reportUrl, CancellationToken cancellationToken = default);
+    Task SendReportAsync(string recipientEmail, string? recipientName, string reportUrl, string jobId, CancellationToken cancellationToken = default);
 }

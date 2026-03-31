@@ -1,0 +1,87 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "email-report",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        200,
+        300
+      ],
+      "webhookId": "email-report-webhook-id"
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $json.body.fromEmail || 'no-reply@dataagent.ai' }}",
+        "toEmail": "={{ $json.body.recipientEmail }}",
+        "subject": "=📊 Báo cáo phân tích — {{ $json.body.fileName || 'Bao_cao.pdf' }}",
+        "html": "=<html><body><h2>Chào bạn,</h2><p>Hệ thống tự động DataAgent AI đã hoàn tất báo cáo phân tích cho Job ID: {{ $json.body.jobId }}.</p><a href='{{ $json.body.reportUrl }}' style='display:inline-block;padding:10px 20px;background:#3498db;color:#fff;text-decoration:none;'>Tải Báo Cáo Tại Đây</a><p>Xin cảm ơn!</p></body></html>",
+        "options": {}
+      },
+      "id": "2",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        420,
+        300
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "YOUR_SMTP_CREDENTIAL_ID",
+          "name": "SMTP Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.body.callbackUrl || 'http://host.docker.internal:5196/api/analysis/' + $json.body.jobId + '/email-callback' }}",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "{\n  \"success\": true\n}",
+        "options": {}
+      },
+      "id": "3",
+      "name": "Callback ASP.NET",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        640,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email": {
+      "main": [
+        [
+          {
+            "node": "Callback ASP.NET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

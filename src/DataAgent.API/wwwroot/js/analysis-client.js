@@ -5,6 +5,7 @@ class AnalysisClient {
         this.jobId = null;
         this.onJobUpdateCallbacks = [];
         this.onProgressCallbacks = [];
+        this.onEmailSentCallbacks = [];
     }
 
     async connectToJob(jobId) {
@@ -31,6 +32,13 @@ class AnalysisClient {
             if(id === this.jobId) {
                 console.log(`[AnalysisClient] Progress Update: ${percent}% - ${message}`);
                 this.onProgressCallbacks.forEach(cb => cb(percent, message));
+            }
+        });
+
+        this.connection.on("ReceiveEmailSent", (id, email) => {
+            if(id === this.jobId) {
+                console.log(`[AnalysisClient] Email Sent to: ${email}`);
+                this.onEmailSentCallbacks.forEach(cb => cb(email));
             }
         });
 
@@ -73,6 +81,10 @@ class AnalysisClient {
 
     onProgress(callback) {
         this.onProgressCallbacks.push(callback);
+    }
+
+    onEmailSent(callback) {
+        this.onEmailSentCallbacks.push(callback);
     }
 }
 

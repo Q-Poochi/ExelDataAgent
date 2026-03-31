@@ -316,6 +316,10 @@
               "target": "Package",
               "version": "[1.8.23, )"
             },
+            "MailKit": {
+              "target": "Package",
+              "version": "[4.4.0, )"
+            },
             "Microsoft.EntityFrameworkCore.SqlServer": {
               "target": "Package",
               "version": "[8.0.*, )"
@@ -327,6 +331,10 @@
             "Minio": {
               "target": "Package",
               "version": "[7.0.0, )"
+            },
+            "StackExchange.Redis": {
+              "target": "Package",
+              "version": "[2.7.33, )"
             }
           },
           "imports": [

@@ -8,4 +8,5 @@ public interface IAnalysisNotificationService
 {
     Task NotifyJobUpdate(string jobId, JobUpdateDto dto);
     Task NotifyProgress(string jobId, int percent, string message);
+    Task NotifyEmailSent(string jobId, string email);
 }

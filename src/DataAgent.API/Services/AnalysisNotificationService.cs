@@ -25,4 +25,9 @@ public class AnalysisNotificationService : IAnalysisNotificationService
     {
         return _hubContext.Clients.Group(jobId).SendAsync("ReceiveProgress", jobId, percent, message);
     }
+
+    public Task NotifyEmailSent(string jobId, string email)
+    {
+        return _hubContext.Clients.Group(jobId).SendAsync("ReceiveEmailSent", jobId, email);
+    }
 }

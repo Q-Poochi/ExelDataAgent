@@ -17,4 +17,9 @@ public class HangfireJobQueueService : IJobQueueService
     {
         return _backgroundJobs.Enqueue<TriggerN8NWorkflowJob>(job => job.ExecuteJobAsync(jobId, CancellationToken.None));
     }
+
+    public string EnqueueEmailJob(Guid jobId, string email, string? name)
+    {
+        return _backgroundJobs.Enqueue<SendReportEmailJob>(job => job.ExecuteJobAsync(jobId, email, name, CancellationToken.None));
+    }
 }

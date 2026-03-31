@@ -46,7 +46,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFileParserService, CsvExcelParserService>();
         services.AddScoped<IJobQueueService, HangfireJobQueueService>();
         services.AddScoped<IEmailService, SmtpEmailService>();
+        services.AddSingleton<IRateLimitService, RedisRateLimitService>();
         services.AddScoped<TriggerN8NWorkflowJob>();
+        services.AddScoped<SendReportEmailJob>();
 
         return services;
     }
