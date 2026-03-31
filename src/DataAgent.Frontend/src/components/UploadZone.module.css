@@ -1,0 +1,70 @@
+.uploadBox {
+  border: 2px dashed var(--primary-blue);
+  border-radius: 8px;
+  padding: 3rem 2rem;
+  text-align: center;
+  background-color: rgba(27, 79, 138, 0.02);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  margin-bottom: 2rem;
+}
+
+.uploadBox:hover, .uploadBox.dragActive {
+  background-color: rgba(27, 79, 138, 0.08);
+  border-color: var(--primary-green);
+}
+
+.icon {
+  color: var(--primary-blue);
+  margin-bottom: 1rem;
+}
+
+.fileInfo {
+  margin-top: 1rem;
+  font-weight: 500;
+  color: var(--primary-green);
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.promptArea {
+  margin-top: 1.5rem;
+}
+
+.promptLabel {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.promptInput {
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 1rem;
+  resize: vertical;
+  min-height: 100px;
+  margin-bottom: 1.5rem;
+}
+
+.promptInput:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(27, 79, 138, 0.1);
+}
+
+.actionRow {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.error {
+  color: var(--error-color);
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}

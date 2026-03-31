@@ -27,6 +27,8 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddHealthChecks();
+
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
@@ -47,6 +49,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 app.UseHangfireDashboard("/hangfire");
 app.MapControllers();
+app.MapHealthChecks("/health");
 app.MapHub<DataAgent.API.Hubs.AnalysisHub>("/hubs/analysis");
 
 app.Run();

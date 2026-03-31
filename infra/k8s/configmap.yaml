@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dataagent-config
+  namespace: dataagent
+data:
+  ASPNETCORE_ENVIRONMENT: "Production"
+  MINIO_ENDPOINT: "http://dataagent-minio:9000"
+  MINIO_BUCKET: "data-agent-reports"
+  MINIO_USE_SSL: "false"
+  N8N_WEBHOOK_URL: "http://dataagent-n8n:5678/webhook/analysis-trigger"
+  CHART_SERVICE_URL: "http://dataagent-chart:8000"
+  API_BASE_URL: "http://dataagent-api:8080"
+  SMTP_HOST: "smtp.gmail.com"
+  SMTP_PORT: "587"
+  SMTP_FROM_EMAIL: "dataagent-noreply@domain.com"

@@ -54,7 +54,6 @@ public class AnalysisController : ControllerBase
         {
             return Unauthorized("Missing X-Callback-Signature header.");
         }
-
         using var reader = new StreamReader(Request.Body, Encoding.UTF8);
         var rawPayload = await reader.ReadToEndAsync();
 

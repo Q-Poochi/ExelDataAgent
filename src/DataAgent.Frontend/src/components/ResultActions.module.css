@@ -1,0 +1,91 @@
+.resultContainer {
+  margin-top: 1rem;
+}
+
+.successPanel {
+  background-color: rgba(28, 122, 74, 0.05);
+  border: 1px solid rgba(28, 122, 74, 0.3);
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.btnDownload {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--primary-green);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.2s;
+  margin-bottom: 2rem;
+}
+
+.btnDownload:hover {
+  background-color: #15633a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(28, 122, 74, 0.2);
+}
+
+.emailForm {
+  max-width: 500px;
+  margin: 0 auto;
+  text-align: left;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.inputGroup {
+  margin-bottom: 1rem;
+}
+
+.inputGroup label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.inputField {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.inputField:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+}
+
+.btnSend {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.statusMessage {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.statusSuccess {
+  background-color: #e8f5e9;
+  color: var(--primary-green);
+}
+
+.statusError {
+  background-color: #ffebee;
+  color: var(--error-color);
+}

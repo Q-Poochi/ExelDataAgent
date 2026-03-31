@@ -1,0 +1,56 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dataagent-ingress
+  namespace: dataagent
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/websocket-services: "dataagent-api"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - api.dataagent.com
+        - n8n.dataagent.com
+      secretName: dataagent-tls
+  rules:
+    - host: api.dataagent.com
+      http:
+        paths:
+          # API Routing
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: dataagent-api
+                port:
+                  number: 8080
+          # SignalR WebSockets Routing
+          - path: /hubs
+            pathType: Prefix
+            backend:
+              service:
+                name: dataagent-api
+                port:
+                  number: 8080
+          # Swagger Routing
+          - path: /swagger
+            pathType: Prefix
+            backend:
+              service:
+                name: dataagent-api
+                port:
+                  number: 8080
+    - host: n8n.dataagent.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: dataagent-n8n
+                port:
+                  number: 5678

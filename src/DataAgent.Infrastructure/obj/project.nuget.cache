@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "ljCN+Cmu+9U=",
+  "dgSpecHash": "CXzwwsrKSB8=",
   "success": true,
   "projectFilePath": "C:\\Project\\DAagent\\src\\DataAgent.Infrastructure\\DataAgent.Infrastructure.csproj",
   "expectedPackageFiles": [
@@ -62,6 +62,8 @@
     "C:\\Users\\ADMIN\\.nuget\\packages\\minio\\7.0.0\\minio.7.0.0.nupkg.sha512",
     "C:\\Users\\ADMIN\\.nuget\\packages\\newtonsoft.json\\11.0.1\\newtonsoft.json.11.0.1.nupkg.sha512",
     "C:\\Users\\ADMIN\\.nuget\\packages\\pipelines.sockets.unofficial\\2.2.8\\pipelines.sockets.unofficial.2.2.8.nupkg.sha512",
+    "C:\\Users\\ADMIN\\.nuget\\packages\\polly\\8.3.1\\polly.8.3.1.nupkg.sha512",
+    "C:\\Users\\ADMIN\\.nuget\\packages\\polly.core\\8.3.1\\polly.core.8.3.1.nupkg.sha512",
     "C:\\Users\\ADMIN\\.nuget\\packages\\rbush.signed\\4.0.0\\rbush.signed.4.0.0.nupkg.sha512",
     "C:\\Users\\ADMIN\\.nuget\\packages\\sixlabors.fonts\\1.0.0\\sixlabors.fonts.1.0.0.nupkg.sha512",
     "C:\\Users\\ADMIN\\.nuget\\packages\\stackexchange.redis\\2.7.33\\stackexchange.redis.2.7.33.nupkg.sha512",

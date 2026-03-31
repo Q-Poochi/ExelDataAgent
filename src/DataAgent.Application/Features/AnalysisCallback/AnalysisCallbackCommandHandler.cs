@@ -1,3 +1,6 @@
+using System;
+using System.Text;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,7 +38,6 @@ public class AnalysisCallbackCommandHandler : IRequestHandler<AnalysisCallbackCo
         var secret = _config["Analysis:CallbackHmacSecret"];
         if (string.IsNullOrEmpty(secret)) throw new Exception("CallbackHmacSecret is not configured.");
 
-        /* 
         // Verify HMAC SHA256
         using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
         var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(request.RawPayload));
@@ -47,7 +49,6 @@ public class AnalysisCallbackCommandHandler : IRequestHandler<AnalysisCallbackCo
         {
             throw new UnauthorizedAccessException("Invalid signature.");
         }
-        */
 
         var payload = JsonSerializer.Deserialize<AnalysisCallbackPayload>(request.RawPayload, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         if (payload == null) return false;

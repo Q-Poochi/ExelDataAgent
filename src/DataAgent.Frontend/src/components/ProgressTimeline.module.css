@@ -1,0 +1,115 @@
+.timelineContainer {
+  margin-top: 1rem;
+}
+
+.progressBarContainer {
+  width: 100%;
+  height: 8px;
+  background-color: var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.progressBar {
+  height: 100%;
+  background-color: var(--primary-green);
+  transition: width 0.5s ease-in-out;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--border-color);
+}
+
+.step {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.stepIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--surface-color);
+  border: 2px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.step.active .stepIcon {
+  border-color: var(--primary-blue);
+  color: var(--primary-blue);
+  background-color: rgba(27, 79, 138, 0.1);
+}
+
+.step.completed .stepIcon {
+  border-color: var(--primary-green);
+  background-color: var(--primary-green);
+  color: white;
+}
+
+.step.error .stepIcon {
+  border-color: var(--error-color);
+  background-color: var(--error-color);
+  color: white;
+}
+
+.stepContent {
+  flex: 1;
+  background-color: rgba(0,0,0,0.01);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.stepTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.stepTime {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.stepMessage {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+}
+
+.codeBlock {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-top: 1rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.85rem;
+  overflow-x: auto;
+  white-space: pre;
+  color: var(--primary-blue);
+}

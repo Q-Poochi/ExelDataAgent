@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: dataagent-sqlserver
+  namespace: dataagent
+spec:
+  serviceName: "dataagent-sqlserver"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dataagent-sqlserver
+  template:
+    metadata:
+      labels:
+        app: dataagent-sqlserver
+    spec:
+      containers:
+        - name: sqlserver
+          image: mcr.microsoft.com/mssql/server:2022-latest
+          ports:
+            - containerPort: 1433
+          env:
+            - name: ACCEPT_EULA
+              value: "Y"
+            - name: MSSQL_SA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: dataagent-secrets
+                  key: MSSQL_SA_PASSWORD
+          volumeMounts:
+            - name: sqlserver-data
+              mountPath: /var/opt/mssql
+          resources:
+            requests:
+              cpu: "1000m"
+              memory: "2Gi"
+            limits:
+              cpu: "2000m"
+              memory: "4Gi"
+  volumeClaimTemplates:
+    - metadata:
+        name: sqlserver-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 20Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dataagent-sqlserver
+  namespace: dataagent
+spec:
+  type: ClusterIP
+  ports:
+    - port: 1433
+      targetPort: 1433
+  selector:
+    app: dataagent-sqlserver

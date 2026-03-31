@@ -1,0 +1,99 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: dataagent
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  
+---
+# Allow all internal communication within the dataagent namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-internal-namespace
+  namespace: dataagent
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: dataagent
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: dataagent
+            
+---
+# Allow ingress from Ingress Controller (Nginx) to API and N8N
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-nginx
+  namespace: dataagent
+spec:
+  podSelector:
+    matchExpressions:
+      - {key: app, operator: In, values: ["dataagent-api", "dataagent-n8n"]}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx # Update this based on cluster ingress setup
+              
+---
+# Allow API and N8N to communicate with external APIs (Claude, Mail, etc.)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-external-egress
+  namespace: dataagent
+spec:
+  podSelector:
+    matchExpressions:
+      - {key: app, operator: In, values: ["dataagent-api", "dataagent-n8n", "dataagent-chart"]}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - ipBlock: # Allow internet access
+            cidr: 0.0.0.0/0
+      ports:
+        - port: 443
+          protocol: TCP
+        - port: 80
+          protocol: TCP
+        - port: 587 # SMTP Support
+          protocol: TCP
+
+---
+# Special rule for DNS resolution
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-resolve
+  namespace: dataagent
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP

@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dataagent-n8n
+  namespace: dataagent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dataagent-n8n
+  template:
+    metadata:
+      labels:
+        app: dataagent-n8n
+    spec:
+      containers:
+        - name: n8n
+          image: n8nio/n8n:latest
+          ports:
+            - containerPort: 5678
+          env:
+            - name: N8N_HOST
+              value: "n8n.dataagent.com" # Thay bằng domain thật
+            - name: N8N_PORT
+              value: "5678"
+            - name: N8N_PROTOCOL
+              value: "https"
+            - name: NODE_ENV
+              value: "production"
+            - name: WEBHOOK_URL
+              value: "https://n8n.dataagent.com/" # Thay bằng domain thật
+            - name: GENERIC_TIMEZONE
+              value: "Asia/Ho_Chi_Minh"
+          volumeMounts:
+            - name: n8n-data
+              mountPath: /home/node/.n8n
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "1000m"
+              memory: "2Gi"
+      volumes:
+        - name: n8n-data
+          persistentVolumeClaim:
+            claimName: n8n-pvc
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: n8n-pvc
+  namespace: dataagent
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dataagent-n8n
+  namespace: dataagent
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5678
+      targetPort: 5678
+  selector:
+    app: dataagent-n8n
