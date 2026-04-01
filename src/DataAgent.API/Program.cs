@@ -2,6 +2,7 @@ using DataAgent.API.Extensions;
 using DataAgent.Application.Extensions;
 using DataAgent.Infrastructure.Extensions;
 using DataAgent.API.Middlewares;
+using DataAgent.API.HealthChecks;
 using Hangfire;
 using Serilog;
 using System.Threading.RateLimiting;
@@ -11,8 +12,6 @@ using System.Text.Json;
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -71,9 +70,15 @@ builder.Services.AddRateLimiter(options =>
 });
 
 // Configure Advanced Health Checks
-var minioEndpoint = builder.Configuration["MinIO:Endpoint"]?.Replace("http://", "").Replace("https://", "");
-var minioAccessKey = builder.Configuration["MinIO:AccessKey"];
-var minioSecretKey = builder.Configuration["MinIO:SecretKey"];
+// Register HttpClient for MinioHealthCheck
+builder.Services.AddHttpClient("minio-health")
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+    {
+        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+    });
+
+// Register custom MinioHealthCheck
+builder.Services.AddSingleton<MinioHealthCheck>();
 
 builder.Services.AddHealthChecks()
     .AddSqlServer(
@@ -84,18 +89,7 @@ builder.Services.AddHealthChecks()
         builder.Configuration["Redis:ConnectionString"] ?? "localhost:6379",
         name: "redis",
         failureStatus: HealthStatus.Unhealthy)
-    .AddS3(
-        s3 => 
-        {
-            s3.Credentials = new Amazon.Runtime.BasicAWSCredentials(minioAccessKey, minioSecretKey);
-            s3.S3Config = new Amazon.S3.AmazonS3Config
-            {
-                ServiceURL = $"http://{minioEndpoint}",
-                ForcePathStyle = true
-            };
-        },
-        name: "minio",
-        failureStatus: HealthStatus.Unhealthy);
+    .AddCheck<MinioHealthCheck>("minio", failureStatus: HealthStatus.Unhealthy);
 
 var app = builder.Build();
 

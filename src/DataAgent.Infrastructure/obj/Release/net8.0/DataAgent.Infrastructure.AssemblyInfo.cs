@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DataAgent.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+870e3837868e754614d390ae3a27f228af149771")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a9959161c298831e92e82dfea644c2df311a2eae")]
 [assembly: System.Reflection.AssemblyProductAttribute("DataAgent.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DataAgent.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

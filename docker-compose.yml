@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   dataagent-api:
     build:
@@ -33,7 +31,9 @@ services:
       redis:
         condition: service_healthy
       minio:
-        condition: service_started
+        condition: service_healthy
+      setup-minio:
+        condition: service_completed_successfully
     networks:
       - dataagent-network
 
@@ -51,7 +51,7 @@ services:
       - "8000:8000"
     depends_on:
       minio:
-        condition: service_started
+        condition: service_healthy
     networks:
       - dataagent-network
 
@@ -102,6 +102,29 @@ services:
       - "9001:9001"
     volumes:
       - minio-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/minio/health/live || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - dataagent-network
+
+  # One-shot container to create the required MinIO bucket on first boot
+  setup-minio:
+    image: minio/mc:latest
+    container_name: dataagent_setup_minio
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set myminio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD};
+      mc mb --ignore-existing myminio/dataagent;
+      mc anonymous set public myminio/dataagent;
+      echo 'MinIO bucket setup complete!';
+      "
     networks:
       - dataagent-network
 
@@ -113,7 +136,7 @@ services:
       - N8N_PORT=5678
       - N8N_PROTOCOL=http
       - NODE_ENV=production
-      - WEBHOOK_URL=http://localhost:5678/ # Must point to host domain via ngrok etc natively if exposed.
+      - WEBHOOK_URL=http://localhost:5678/
       - GENERIC_TIMEZONE=Asia/Ho_Chi_Minh
     ports:
       - "5678:5678"
