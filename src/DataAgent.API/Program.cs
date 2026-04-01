@@ -87,10 +87,12 @@ builder.Services.AddHealthChecks()
     .AddS3(
         s3 => 
         {
-            s3.AccessKey = minioAccessKey;
-            s3.SecretKey = minioSecretKey;
-            s3.OriginalServiceURL = $"http://{minioEndpoint}";
-            s3.ForcePathStyle = true;
+            s3.Credentials = new Amazon.Runtime.BasicAWSCredentials(minioAccessKey, minioSecretKey);
+            s3.S3Config = new Amazon.S3.AmazonS3Config
+            {
+                ServiceURL = $"http://{minioEndpoint}",
+                ForcePathStyle = true
+            };
         },
         name: "minio",
         failureStatus: HealthStatus.Unhealthy);

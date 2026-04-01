@@ -625,8 +625,8 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "c:\\Project\\DAagent\\src\\DataAgent.Domain\\DataAgent.Domain.csproj": {
-              "projectPath": "c:\\Project\\DAagent\\src\\DataAgent.Domain\\DataAgent.Domain.csproj"
+            "C:\\Project\\DAagent\\src\\DataAgent.Domain\\DataAgent.Domain.csproj": {
+              "projectPath": "C:\\Project\\DAagent\\src\\DataAgent.Domain\\DataAgent.Domain.csproj"
             }
           }
         }

@@ -1,0 +1,12 @@
+C:\Project\DAagent\src\DataAgent.Domain\bin\Release\net8.0\DataAgent.Domain.deps.json
+C:\Project\DAagent\src\DataAgent.Domain\bin\Release\net8.0\DataAgent.Domain.dll
+C:\Project\DAagent\src\DataAgent.Domain\bin\Release\net8.0\DataAgent.Domain.pdb
+C:\Project\DAagent\src\DataAgent.Domain\obj\Release\net8.0\DataAgent.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Project\DAagent\src\DataAgent.Domain\obj\Release\net8.0\DataAgent.Domain.AssemblyInfoInputs.cache
+C:\Project\DAagent\src\DataAgent.Domain\obj\Release\net8.0\DataAgent.Domain.AssemblyInfo.cs
+C:\Project\DAagent\src\DataAgent.Domain\obj\Release\net8.0\DataAgent.Domain.csproj.CoreCompileInputs.cache
+C:\Project\DAagent\src\DataAgent.Domain\obj\Release\net8.0\DataAgent.Domain.sourcelink.json
+C:\Project\DAagent\src\DataAgent.Domain\obj\Release\net8.0\DataAgent.Domain.dll
+C:\Project\DAagent\src\DataAgent.Domain\obj\Release\net8.0\refint\DataAgent.Domain.dll
+C:\Project\DAagent\src\DataAgent.Domain\obj\Release\net8.0\DataAgent.Domain.pdb
+C:\Project\DAagent\src\DataAgent.Domain\obj\Release\net8.0\ref\DataAgent.Domain.dll

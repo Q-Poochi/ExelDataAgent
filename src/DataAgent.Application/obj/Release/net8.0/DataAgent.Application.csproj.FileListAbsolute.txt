@@ -1,0 +1,16 @@
+C:\Project\DAagent\src\DataAgent.Application\bin\Release\net8.0\DataAgent.Application.deps.json
+C:\Project\DAagent\src\DataAgent.Application\bin\Release\net8.0\DataAgent.Application.dll
+C:\Project\DAagent\src\DataAgent.Application\bin\Release\net8.0\DataAgent.Application.pdb
+C:\Project\DAagent\src\DataAgent.Application\bin\Release\net8.0\DataAgent.Domain.dll
+C:\Project\DAagent\src\DataAgent.Application\bin\Release\net8.0\DataAgent.Domain.pdb
+C:\Project\DAagent\src\DataAgent.Application\obj\Release\net8.0\DataAgent.Application.csproj.AssemblyReference.cache
+C:\Project\DAagent\src\DataAgent.Application\obj\Release\net8.0\DataAgent.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Project\DAagent\src\DataAgent.Application\obj\Release\net8.0\DataAgent.Application.AssemblyInfoInputs.cache
+C:\Project\DAagent\src\DataAgent.Application\obj\Release\net8.0\DataAgent.Application.AssemblyInfo.cs
+C:\Project\DAagent\src\DataAgent.Application\obj\Release\net8.0\DataAgent.Application.csproj.CoreCompileInputs.cache
+C:\Project\DAagent\src\DataAgent.Application\obj\Release\net8.0\DataAgent.Application.sourcelink.json
+C:\Project\DAagent\src\DataAgent.Application\obj\Release\net8.0\DataAgen.9D7E7369.Up2Date
+C:\Project\DAagent\src\DataAgent.Application\obj\Release\net8.0\DataAgent.Application.dll
+C:\Project\DAagent\src\DataAgent.Application\obj\Release\net8.0\refint\DataAgent.Application.dll
+C:\Project\DAagent\src\DataAgent.Application\obj\Release\net8.0\DataAgent.Application.pdb
+C:\Project\DAagent\src\DataAgent.Application\obj\Release\net8.0\ref\DataAgent.Application.dll

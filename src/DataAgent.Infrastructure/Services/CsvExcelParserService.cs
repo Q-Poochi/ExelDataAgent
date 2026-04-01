@@ -74,7 +74,7 @@ public class CsvExcelParserService : IFileParserService
         var lastRowUsed = worksheet.LastRowUsed();
         if (firstRowUsed == null || lastRowUsed == null) return Task.FromResult(response);
 
-        var columnsUsed = worksheet.LastColumnUsed().ColumnNumber();
+        var columnsUsed = worksheet.LastColumnUsed()?.ColumnNumber() ?? 0;
 
         // Read headers
         for (int i = 1; i <= columnsUsed; i++)
@@ -98,7 +98,7 @@ public class CsvExcelParserService : IFileParserService
             count++;
         }
 
-        response.TotalRows = worksheet.LastRowUsed().RowNumber() - firstRowUsed.RowNumber();
+        response.TotalRows = (worksheet.LastRowUsed()?.RowNumber() ?? firstRowUsed.RowNumber()) - firstRowUsed.RowNumber();
         response.ColumnTypes = DetectColumnTypes(response.Headers, response.Rows);
 
         return Task.FromResult(response);

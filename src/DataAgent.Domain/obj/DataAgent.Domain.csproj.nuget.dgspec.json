@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "c:\\Project\\DAagent\\src\\DataAgent.Domain\\DataAgent.Domain.csproj": {}
+    "C:\\Project\\DAagent\\src\\DataAgent.Domain\\DataAgent.Domain.csproj": {}
   },
   "projects": {
-    "c:\\Project\\DAagent\\src\\DataAgent.Domain\\DataAgent.Domain.csproj": {
+    "C:\\Project\\DAagent\\src\\DataAgent.Domain\\DataAgent.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\Project\\DAagent\\src\\DataAgent.Domain\\DataAgent.Domain.csproj",
+        "projectUniqueName": "C:\\Project\\DAagent\\src\\DataAgent.Domain\\DataAgent.Domain.csproj",
         "projectName": "DataAgent.Domain",
-        "projectPath": "c:\\Project\\DAagent\\src\\DataAgent.Domain\\DataAgent.Domain.csproj",
+        "projectPath": "C:\\Project\\DAagent\\src\\DataAgent.Domain\\DataAgent.Domain.csproj",
         "packagesPath": "C:\\Users\\ADMIN\\.nuget\\packages\\",
-        "outputPath": "c:\\Project\\DAagent\\src\\DataAgent.Domain\\obj\\",
+        "outputPath": "C:\\Project\\DAagent\\src\\DataAgent.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
