@@ -1,96 +1,138 @@
-# DataAgent Automated Reporting
+# DataAgent Platform 🚀
 
-This repository contains the backend components for DataAgent, a system designed to automate analysis, reporting, and emailing processes using a combination of ASP.NET Core, Python, and n8n workflows.
+DataAgent is an end-to-end automated platform that processes user raw data (CSV/Excel) and generates comprehensive PDF analytical reports. The platform integrates a C# back-end for data ingestion, an N8N workflow orchestrator for interacting with AI (Gemini/Claude), and a Python visualization microservice, delivered through a sleek React frontend.
 
-## Architecture
+## 🏗 Architecture Diagram
 
-- **`DataAgent.API`**: Core backend written in ASP.NET Core (.NET 8.0). Handles job queuing, SignalR notifications, Webhooks, and rate limiting.
-- **`chart-service`**: Python microservice (FastAPI + WeasyPrint). Responsible for converting tabular data and generating beautifully formatted PDF reports.
-- **`n8n`**: Automated workflow engine used to integrate LLM providers (Anthropic Claude/Google Gemini) and execute the actual analysis orchestration.
-- **Support Services**: Microsoft SQL Server, Redis, and MinIO (S3-compatible storage).
+```ascii
+                      +---------------------------------+
+                      |         React Frontend          |
+                      |   (Vite + TS + Tailwind CSS)    |
+                      +---------------------------------+
+                             |    ^
+               REST API (Upload)  |  SignalR (Progress / WebSocket)
+                             v    |
+   +-----------------------------------------------------------+
+   |                       DataAgent API                       |
+   |              (ASP.NET Core 8 Web API / C#)                |
+   |                                                           |
+   |  - Controllers: File, Analysis, Health Check              |
+   |  - Services: Rate Limiting, Serilog, SignalR Hub          |
+   |  - Storage: SQL Server (EF Core), MinIO (S3)              |
+   +-----------------------------------------------------------+
+             |                               ^ (Callback)
+             v (Trigger Workflow via HTTP)   |
+   +-----------------------------------------------------------+
+   |                       n8n Orchestrator                    |
+   |                                                           |
+   | 1. Receives File URL + User Prompt                        |
+   | 2. Connects to LLM (Anthropic / Gemini) to write Python   |
+   | 3. Triggers Chart Service with Python code                |
+   | 4. Generates PDF Report string / Returns via Webhook      |
+   +-----------------------------------------------------------+
+             |
+             v (Send Code to run safely)
+   +-----------------------------------------------------------+
+   |                     Chart Microservice                    |
+   |             (Python FastAPI + WeasyPrint)                 |
+   |                                                           |
+   | - Executes sandboxed Python code by AI                    |
+   | - Renders charts using Matplotlib / Seaborn               |
+   | - Compiles HTML/CSS to PDF using WeasyPrint               |
+   +-----------------------------------------------------------+
 
-## Local Development Setup
-
-We use Docker Compose to spin up the entire ecosystem quickly.
-
-### Prerequisites
-- [Docker & Docker Compose](https://docs.docker.com/get-docker/) installed.
-- Git.
-
-### Setup Instructions
-
-1. **Clone the repository:**
-   ```bash
-   git clone <repository-url>
-   cd DAagent
-   ```
-
-2. **Configure Environment Variables:**
-   Copy the provided `.env.example` file to `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-   Open the `.env` file and fill in your actual credentials (Passwords, API Keys, Email settings).
-
-3. **Start the Infrastructure:**
-   Run the following command in the root of the project to build and start all 6 services:
-   ```bash
-   docker-compose up -d --build
-   ```
-
-4. **Verify the Services:**
-   - **C# API (Swagger)**: `http://localhost:8080/swagger`
-   - **Chart Service**: `http://localhost:8000`
-   - **n8n Dashboard**: `http://localhost:5678`
-   - **MinIO Console**: `http://localhost:9001` (Login with `admin` / `S3cureP@ssword!`)
-
-5. **Initialize Storage:**
-   Log into the MinIO Console (`http://localhost:9001`) and create a bucket named: `data-agent-reports`. Make sure the access policy is set to `public` if you want direct download links.
-
-### Shutting Down
-To stop all services and preserve data:
-```bash
-docker-compose down
-```
-To stop all services and **wipe all data** (delete volumes):
-```bash
-docker-compose down -v
+                           Infrastructure
+   [ SQL Server ]   [ Redis ]    [ MinIO Storage ]   [ Hangfire ]
 ```
 
-## Production Deployment (Kubernetes)
+## 📋 Prerequisites
 
-For staging and production environments, we provide Kubernetes manifests located in the `infra/k8s` directory.
+Before you start, ensure you have the following installed on your machine:
+- **Docker & Docker Compose** (For running infrastructure services)
+- **.NET 8 SDK** (For building and running the Backend API)
+- **Node.js 20+ & npm** (For the React Frontend)
+- **Python 3.12+** (For the Chart Service, if running outside Docker)
 
-### Quick Start (K8s)
-Ensure you have `kubectl` configured pointing to your cluster.
+## ⚡ Quick Start
 
-1. **Apply Namespace:**
-   ```bash
-   kubectl apply -f infra/k8s/namespace.yaml
-   ```
-2. **Setup Configurations:**
-   Edit `infra/k8s/configmap.yaml` and `infra/k8s/secrets.yaml` with your production values, then apply:
-   ```bash
-   kubectl apply -f infra/k8s/configmap.yaml
-   kubectl apply -f infra/k8s/secrets.yaml
-   ```
-3. **Deploy Support Infrastructure:**
-   ```bash
-   kubectl apply -f infra/k8s/sqlserver-statefulset.yaml
-   kubectl apply -f infra/k8s/minio-statefulset.yaml
-   kubectl apply -f infra/k8s/redis-deployment.yaml
-   ```
-4. **Deploy Application Services:**
-   ```bash
-   kubectl apply -f infra/k8s/n8n-deployment.yaml
-   kubectl apply -f infra/k8s/chart-service-deployment.yaml
-   kubectl apply -f infra/k8s/api-deployment.yaml
-   ```
-5. **Setup Networking:**
-   ```bash
-   kubectl apply -f infra/k8s/networkpolicy.yaml
-   kubectl apply -f infra/k8s/ingress.yaml
-   ```
+You can bring up the entire environment entirely locally using these 3 commands:
 
-## CI/CD Pipeline
-A GitHub Actions workflow is defined in `.github/workflows/ci.yml`. It will automatically trigger on pushes and Pull Requests to the `main` branch to evaluate code health and verify Docker build integrity.
+**1. Start Infrastructure (Background)**
+```bash
+docker-compose up -d sqlserver redis minio n8n setup-minio
+```
+*Wait ~10 seconds for SQL Server and MinIO to fully initialize.*
+
+**2. Start the Backend API**
+```bash
+cd src/DataAgent.API
+dotnet run
+```
+
+**3. Start the Frontend Application**
+```bash
+# In a separate terminal
+cd src/DataAgent.Frontend
+npm install
+npm run dev
+```
+👉 Open your browser at: `http://localhost:5173`
+
+*(Note: The `chart-service` can also be brought up via docker using `docker-compose up -d chart-service`)*
+
+## 🔐 Environment Variables (`.env` Reference)
+
+A `.env` file should be located at the root of your project or injected during deployment. Example configuration:
+
+```env
+# Database
+SA_PASSWORD=YourStrong@Passw0rd
+REDIS_PASSWORD=YourRedisPass
+
+# MinIO
+MINIO_ROOT_USER=root
+MINIO_ROOT_PASSWORD=Th1s1sS3cureP@ssword!
+MINIO_ENDPOINT=localhost:9000
+
+# N8N & Application Secrets
+N8N_ENCRYPTION_KEY=my-encryption-key
+WEBHOOK_URL=http://host.docker.internal:5678/webhook/analysis-trigger
+N8N_AUTH_TOKEN=my-secret-token
+API_CALLBACK_SECRET=SUPER_SECRET_HMAC_KEY_123456789012345
+
+# AI API Keys
+ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxx
+```
+
+## 🔌 API Endpoints
+*Full documentation is available via Swagger at `http://localhost:5196/swagger` when running in Development mode.*
+
+- **Health Checks**
+  - `GET /health` : Liveness check. Returns 200 OK.
+  - `GET /health/ready` : Readiness check. Verifies SQL Server, Redis, and MinIO connectivity.
+- **File Management** *(Rate Limit: 10 req / min)*
+  - `POST /api/files/upload` : Uploads an Excel/CSV file to MinIO and returns `jobId` & `fileUrl`.
+- **Analysis** *(Rate Limit: 5 req / min)*
+  - `POST /api/analysis/start` : Triggers the N8N workflow processing.
+  - `GET /api/analysis/{jobId}/status` : Get execution status & SignalR progress.
+  - `POST /api/analysis/callback` : Secured entrypoint for N8N Webhook callbacks.
+- **Reporting** *(Rate Limit: 20 req / hour)*
+  - `POST /api/analysis/{jobId}/send-email` : Queues an email delivery task with Hangfire.
+
+## 🛠 Troubleshooting
+
+**1. Port Conflicts**
+If you see an error that port `1433` (SQL) or `5196` (API) is already in use, verify active processes using `netstat -ano | findstr <port>` and terminate them, or update the `docker-compose.yml` to map to alternative ports (e.g., `1434:1433`).
+
+**2. SignalR Failing to Negotiate**
+Ensure the CORS policy inside `Program.cs` allows `http://localhost:5173` and `AllowCredentials` is enabled. You may see a fallback to LongPolling if WebSockets is blocked by antivirus or VPNs.
+
+**3. MinIO Bucket Refuses Uploads**
+If `setup-minio` container failed in Docker Compose, the `dataagent` bucket won't exist. Manually access `http://localhost:9001` (login: root / Th1s1sS3cureP@ssword!) and create a bucket named `dataagent`. Set its access policy to `public`.
+
+**4. Migrations Not Applied**
+If you receive SQL Exceptions about missing tables, ensure Entity Framework ran its update. Stop the API, run:
+`dotnet ef database update --project ..\DataAgent.Infrastructure --startup-project .`
+
+---
+*Built securely. Engineered for performance.*

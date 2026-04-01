@@ -34,18 +34,71 @@ public class ExceptionHandlingMiddleware
     private static Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         context.Response.ContentType = "application/problem+json";
-        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-
+        var statusCode = StatusCodes.Status500InternalServerError;
         var problemDetails = new ProblemDetails
         {
-            Status = StatusCodes.Status500InternalServerError,
-            Title = "Server Error",
             Type = "https://datatracker.ietf.org/doc/html/rfc7807",
-            Detail = exception.Message,
             Instance = context.Request.Path
         };
 
-        var json = JsonSerializer.Serialize(problemDetails);
+        switch (exception)
+        {
+            case FluentValidation.ValidationException validationEx:
+                statusCode = StatusCodes.Status400BadRequest;
+                problemDetails.Status = statusCode;
+                problemDetails.Title = "Validation Error";
+                problemDetails.Detail = "One or more validation errors occurred.";
+                
+                var errors = new System.Collections.Generic.Dictionary<string, string[]>();
+                foreach (var err in validationEx.Errors)
+                {
+                    if (errors.ContainsKey(err.PropertyName))
+                    {
+                        var list = new System.Collections.Generic.List<string>(errors[err.PropertyName]) { err.ErrorMessage };
+                        errors[err.PropertyName] = list.ToArray();
+                    }
+                    else
+                    {
+                        errors.Add(err.PropertyName, new[] { err.ErrorMessage });
+                    }
+                }
+                problemDetails.Extensions.Add("errors", errors);
+                break;
+
+            case DataAgent.Domain.Exceptions.NotFoundException notFoundEx:
+                statusCode = StatusCodes.Status404NotFound;
+                problemDetails.Status = statusCode;
+                problemDetails.Title = "Not Found";
+                problemDetails.Detail = notFoundEx.Message;
+                break;
+
+            case DataAgent.Domain.Exceptions.UnauthorizedException authEx:
+                statusCode = StatusCodes.Status401Unauthorized;
+                problemDetails.Status = statusCode;
+                problemDetails.Title = "Unauthorized";
+                problemDetails.Detail = authEx.Message;
+                break;
+
+            default:
+                statusCode = StatusCodes.Status500InternalServerError;
+                problemDetails.Status = statusCode;
+                problemDetails.Title = "Server Error";
+                // Hide exact error message in non-development environment
+                var env = context.RequestServices.GetService(typeof(Microsoft.AspNetCore.Hosting.IWebHostEnvironment)) as Microsoft.AspNetCore.Hosting.IWebHostEnvironment;
+                if (env != null && (env.EnvironmentName == "Development" || env.EnvironmentName == "Testing"))
+                {
+                    problemDetails.Detail = exception.Message;
+                    problemDetails.Extensions.Add("StackTrace", exception.StackTrace);
+                }
+                else
+                {
+                    problemDetails.Detail = "An unexpected error occurred.";
+                }
+                break;
+        }
+
+        context.Response.StatusCode = statusCode;
+        var json = JsonSerializer.Serialize(problemDetails, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
         return context.Response.WriteAsync(json);
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using MediatR;
 using DataAgent.Application.Features.Files.UploadFile;
 using DataAgent.Application.Features.Files.GetFilePreview;
@@ -22,6 +23,7 @@ public class FileController : ControllerBase
 
     [HttpPost("upload")]
     [Consumes("multipart/form-data")]
+    [EnableRateLimiting("UploadPolicy")]
     public async Task<ActionResult<UploadedFileDto>> UploadFile(IFormFile file)
     {
         if (file == null || file.Length == 0)

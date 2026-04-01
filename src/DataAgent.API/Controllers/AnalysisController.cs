@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using MediatR;
 using DataAgent.Application.Features.StartAnalysis;
 using DataAgent.Application.Features.GetJobStatus;
@@ -29,6 +30,7 @@ public class AnalysisController : ControllerBase
     }
 
     [HttpPost("start")]
+    [EnableRateLimiting("AnalysisPolicy")]
     public async Task<ActionResult> StartAnalysis([FromBody] StartAnalysisCommand command)
     {
         var jobId = await _mediator.Send(command);
@@ -71,17 +73,11 @@ public class AnalysisController : ControllerBase
     }
 
     [HttpPost("{jobId}/send-email")]
+    [EnableRateLimiting("EmailPolicy")]
     public async Task<ActionResult> SendEmail(Guid jobId, [FromBody] SendEmailRequestDto request)
     {
         if (string.IsNullOrWhiteSpace(request.RecipientEmail) || !request.RecipientEmail.Contains("@"))
             return BadRequest("Invalid email format");
-
-        // Rate limiting: max 100 emails per hour per IP (or global if behind proxy w/o IP extraction)
-        var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "global";
-        var isAllowed = await _rateLimitService.IsValidAsync(clientIp, limit: 100, periodInMinutes: 60);
-        
-        if (!isAllowed)
-            return StatusCode(429, "Rate limit exceeded. Maximum 100 emails per hour allowed.");
 
         var command = new SendReportEmailCommand
         {
