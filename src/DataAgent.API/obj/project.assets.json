@@ -2,23 +2,6 @@
   "version": 3,
   "targets": {
     "net8.0": {
-      "AspNetCore.HealthChecks.Aws.S3/9.0.0": {
-        "type": "package",
-        "dependencies": {
-          "AWSSDK.S3": "3.7.302",
-          "Microsoft.Extensions.Diagnostics.HealthChecks": "8.0.11"
-        },
-        "compile": {
-          "lib/net8.0/HealthChecks.Aws.S3.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net8.0/HealthChecks.Aws.S3.dll": {
-            "related": ".xml"
-          }
-        }
-      },
       "AspNetCore.HealthChecks.Redis/9.0.0": {
         "type": "package",
         "dependencies": {
@@ -49,35 +32,6 @@
         },
         "runtime": {
           "lib/net8.0/HealthChecks.SqlServer.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "AWSSDK.Core/4.0.3.25": {
-        "type": "package",
-        "compile": {
-          "lib/net8.0/AWSSDK.Core.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net8.0/AWSSDK.Core.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "AWSSDK.S3/4.0.20.1": {
-        "type": "package",
-        "dependencies": {
-          "AWSSDK.Core": "[4.0.3.25, 5.0.0)"
-        },
-        "compile": {
-          "lib/net8.0/AWSSDK.S3.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net8.0/AWSSDK.S3.dll": {
             "related": ".xml"
           }
         }
@@ -2454,23 +2408,6 @@
     }
   },
   "libraries": {
-    "AspNetCore.HealthChecks.Aws.S3/9.0.0": {
-      "sha512": "vyOiz09Qa+//aThDF7rzyeU6LG1++J3fMeBqv8ockOjr3y+5IVmxhjORy3YVVLummcCyqlb3teuOrQYkjG5tjQ==",
-      "type": "package",
-      "path": "aspnetcore.healthchecks.aws.s3/9.0.0",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "README.md",
-        "aspnetcore.healthchecks.aws.s3.9.0.0.nupkg.sha512",
-        "aspnetcore.healthchecks.aws.s3.nuspec",
-        "icon.png",
-        "lib/net8.0/HealthChecks.Aws.S3.dll",
-        "lib/net8.0/HealthChecks.Aws.S3.xml",
-        "lib/netstandard2.0/HealthChecks.Aws.S3.dll",
-        "lib/netstandard2.0/HealthChecks.Aws.S3.xml"
-      ]
-    },
     "AspNetCore.HealthChecks.Redis/9.0.0": {
       "sha512": "yNH0h8GLRbAf+PU5HNVLZ5hNeyq9mDVmRKO9xuZsme/znUYoBJlQvI0gq45gaZNlLncCHkMhR4o90MuT+gxxPw==",
       "type": "package",
@@ -2501,53 +2438,6 @@
         "lib/net8.0/HealthChecks.SqlServer.xml",
         "lib/netstandard2.0/HealthChecks.SqlServer.dll",
         "lib/netstandard2.0/HealthChecks.SqlServer.xml"
-      ]
-    },
-    "AWSSDK.Core/4.0.3.25": {
-      "sha512": "ug/C6csm8/GcRrMij9EtTA6k2MtRFV9EibhWNRFTISR8AGXQnSoxUKnddMpHah6ax/Tjg1GW0zk1i0/wcvEqmg==",
-      "type": "package",
-      "path": "awssdk.core/4.0.3.25",
-      "hasTools": true,
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "awssdk.core.4.0.3.25.nupkg.sha512",
-        "awssdk.core.nuspec",
-        "images/AWSLogo.png",
-        "lib/net472/AWSSDK.Core.dll",
-        "lib/net472/AWSSDK.Core.xml",
-        "lib/net8.0/AWSSDK.Core.dll",
-        "lib/net8.0/AWSSDK.Core.xml",
-        "lib/netcoreapp3.1/AWSSDK.Core.dll",
-        "lib/netcoreapp3.1/AWSSDK.Core.xml",
-        "lib/netstandard2.0/AWSSDK.Core.dll",
-        "lib/netstandard2.0/AWSSDK.Core.xml",
-        "tools/account-management.ps1"
-      ]
-    },
-    "AWSSDK.S3/4.0.20.1": {
-      "sha512": "UH2ozA9bQe/dOwxClI7h1BEmpt45hk5rrzwQgDFLdt5bpP5o46gHAAHiM6dbiBLzD81Q0YQHMiJ9nWeO5AG5FQ==",
-      "type": "package",
-      "path": "awssdk.s3/4.0.20.1",
-      "hasTools": true,
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "analyzers/dotnet/cs/AWSSDK.S3.CodeAnalysis.dll",
-        "analyzers/dotnet/cs/SharedAnalysisCode.dll",
-        "awssdk.s3.4.0.20.1.nupkg.sha512",
-        "awssdk.s3.nuspec",
-        "images/AWSLogo.png",
-        "lib/net472/AWSSDK.S3.dll",
-        "lib/net472/AWSSDK.S3.xml",
-        "lib/net8.0/AWSSDK.S3.dll",
-        "lib/net8.0/AWSSDK.S3.xml",
-        "lib/netcoreapp3.1/AWSSDK.S3.dll",
-        "lib/netcoreapp3.1/AWSSDK.S3.xml",
-        "lib/netstandard2.0/AWSSDK.S3.dll",
-        "lib/netstandard2.0/AWSSDK.S3.xml",
-        "tools/install.ps1",
-        "tools/uninstall.ps1"
       ]
     },
     "Azure.Core/1.38.0": {
@@ -6331,8 +6221,6 @@
   },
   "projectFileDependencyGroups": {
     "net8.0": [
-      "AWSSDK.S3 >= 4.0.20.1",
-      "AspNetCore.HealthChecks.Aws.S3 >= 9.0.0",
       "AspNetCore.HealthChecks.Redis >= 9.0.0",
       "AspNetCore.HealthChecks.SqlServer >= 9.0.0",
       "DataAgent.Application >= 1.0.0",
@@ -6404,14 +6292,6 @@
       "net8.0": {
         "targetAlias": "net8.0",
         "dependencies": {
-          "AWSSDK.S3": {
-            "target": "Package",
-            "version": "[4.0.20.1, )"
-          },
-          "AspNetCore.HealthChecks.Aws.S3": {
-            "target": "Package",
-            "version": "[9.0.0, )"
-          },
           "AspNetCore.HealthChecks.Redis": {
             "target": "Package",
             "version": "[9.0.0, )"

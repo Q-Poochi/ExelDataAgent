@@ -90,9 +90,9 @@ SA_PASSWORD=YourStrong@Passw0rd
 REDIS_PASSWORD=YourRedisPass
 
 # MinIO
-MINIO_ROOT_USER=root
-MINIO_ROOT_PASSWORD=Th1s1sS3cureP@ssword!
-MINIO_ENDPOINT=localhost:9000
+MINIO_ROOT_USER=admin
+MINIO_ROOT_PASSWORD=S3cureP@ssword!
+MINIO_ENDPOINT=localhost:9001
 
 # N8N & Application Secrets
 N8N_ENCRYPTION_KEY=my-encryption-key
@@ -100,9 +100,7 @@ WEBHOOK_URL=http://host.docker.internal:5678/webhook/analysis-trigger
 N8N_AUTH_TOKEN=my-secret-token
 API_CALLBACK_SECRET=SUPER_SECRET_HMAC_KEY_123456789012345
 
-# AI API Keys
-ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxx
-```
+AI API ket GOOGLE GEMINI
 
 ## 🔌 API Endpoints
 *Full documentation is available via Swagger at `http://localhost:5196/swagger` when running in Development mode.*

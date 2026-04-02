@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using MediatR;
 using DataAgent.Application.Interfaces;
 using DataAgent.Domain.Entities;
+using DataAgent.Domain.Exceptions;
 
 namespace DataAgent.Application.Features.StartAnalysis;
 
@@ -36,7 +37,7 @@ public class StartAnalysisCommandHandler : IRequestHandler<StartAnalysisCommand,
     {
         var fileInfo = await _fileRepository.GetByIdAsync(request.FileId, cancellationToken);
         if (fileInfo == null)
-            throw new Exception("File not found");
+            throw new NotFoundException($"File with ID {request.FileId} not found");
 
         string fileUrl = await _fileStorage.GetFileUrlAsync(fileInfo.StorageKey, TimeSpan.FromDays(7));
 

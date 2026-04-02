@@ -1,14 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "PJc7q2txbj8=",
+  "dgSpecHash": "Q4L1Cgg4B7E=",
   "success": true,
   "projectFilePath": "C:\\Project\\DAagent\\src\\DataAgent.API\\DataAgent.API.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\ADMIN\\.nuget\\packages\\aspnetcore.healthchecks.aws.s3\\9.0.0\\aspnetcore.healthchecks.aws.s3.9.0.0.nupkg.sha512",
     "C:\\Users\\ADMIN\\.nuget\\packages\\aspnetcore.healthchecks.redis\\9.0.0\\aspnetcore.healthchecks.redis.9.0.0.nupkg.sha512",
     "C:\\Users\\ADMIN\\.nuget\\packages\\aspnetcore.healthchecks.sqlserver\\9.0.0\\aspnetcore.healthchecks.sqlserver.9.0.0.nupkg.sha512",
-    "C:\\Users\\ADMIN\\.nuget\\packages\\awssdk.core\\4.0.3.25\\awssdk.core.4.0.3.25.nupkg.sha512",
-    "C:\\Users\\ADMIN\\.nuget\\packages\\awssdk.s3\\4.0.20.1\\awssdk.s3.4.0.20.1.nupkg.sha512",
     "C:\\Users\\ADMIN\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\ADMIN\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",
     "C:\\Users\\ADMIN\\.nuget\\packages\\bouncycastle.cryptography\\2.3.0\\bouncycastle.cryptography.2.3.0.nupkg.sha512",

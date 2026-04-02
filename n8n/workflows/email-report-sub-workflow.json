@@ -1,4 +1,5 @@
 {
+  "name": "DataAgent - Email Report Sub-Workflow",
   "nodes": [
     {
       "parameters": {
@@ -7,35 +8,39 @@
         "responseMode": "lastNode",
         "options": {}
       },
-      "id": "1",
+      "id": "email-node-1",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [
-        200,
-        300
-      ],
-      "webhookId": "email-report-webhook-id"
+      "position": [200, 300],
+      "webhookId": "email-report-webhook-dataagent"
     },
     {
       "parameters": {
-        "fromEmail": "={{ $json.body.fromEmail || 'no-reply@dataagent.ai' }}",
-        "toEmail": "={{ $json.body.recipientEmail }}",
-        "subject": "=📊 Báo cáo phân tích — {{ $json.body.fileName || 'Bao_cao.pdf' }}",
-        "html": "=<html><body><h2>Chào bạn,</h2><p>Hệ thống tự động DataAgent AI đã hoàn tất báo cáo phân tích cho Job ID: {{ $json.body.jobId }}.</p><a href='{{ $json.body.reportUrl }}' style='display:inline-block;padding:10px 20px;background:#3498db;color:#fff;text-decoration:none;'>Tải Báo Cáo Tại Đây</a><p>Xin cảm ơn!</p></body></html>",
+        "jsCode": "const body = $json.body;\nreturn [{\n  json: {\n    jobId: body.jobId,\n    recipientEmail: body.recipientEmail,\n    recipientName: body.recipientName || 'Khách hàng',\n    reportUrl: body.reportUrl,\n    fileName: body.fileName || 'Bao_cao_phan_tich.pdf',\n    fromEmail: body.fromEmail || 'no-reply@dataagent.ai',\n    callbackUrl: body.callbackUrl\n  }\n}];"
+      },
+      "id": "email-node-0",
+      "name": "Parse Email Body",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $json.fromEmail }}",
+        "toEmail": "={{ $json.recipientEmail }}",
+        "subject": "=📊 Báo cáo phân tích dữ liệu — {{ $json.fileName }}",
+        "html": "=<!DOCTYPE html>\n<html>\n<head><meta charset='utf-8'></head>\n<body style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f7f6f3;'>\n  <div style='background: white; border-radius: 12px; padding: 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);'>\n    <div style='text-align: center; margin-bottom: 24px;'>\n      <h1 style='color: #1B4F8A; margin: 0;'>📊 DataAgent</h1>\n      <p style='color: #666; margin: 8px 0 0;'>Nền tảng phân tích dữ liệu AI</p>\n    </div>\n    <h2 style='color: #333;'>Xin chào {{ $json.recipientName }},</h2>\n    <p style='color: #555; line-height: 1.6;'>Hệ thống <strong>DataAgent AI</strong> đã hoàn tất báo cáo phân tích dữ liệu của bạn.</p>\n    <p style='color: #555;'><strong>Mã Job:</strong> <code style='background: #f0f0f0; padding: 2px 6px; border-radius: 4px;'>{{ $json.jobId }}</code></p>\n    <div style='text-align: center; margin: 32px 0;'>\n      <a href='{{ $json.reportUrl }}' style='display: inline-block; padding: 14px 28px; background: #1C7A4A; color: white; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: bold;'>📥 Tải Báo Cáo PDF</a>\n    </div>\n    <hr style='border: none; border-top: 1px solid #eee; margin: 24px 0;'>\n    <p style='color: #999; font-size: 12px; text-align: center;'>Email này được gửi tự động từ DataAgent Platform. Vui lòng không trả lời email này.</p>\n  </div>\n</body>\n</html>",
         "options": {}
       },
-      "id": "2",
+      "id": "email-node-2",
       "name": "Send Email",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2,
-      "position": [
-        420,
-        300
-      ],
+      "position": [640, 300],
       "credentials": {
         "smtp": {
-          "id": "YOUR_SMTP_CREDENTIAL_ID",
+          "id": "SMTP_CREDENTIAL_ID",
           "name": "SMTP Account"
         }
       }
@@ -43,45 +48,47 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $json.body.callbackUrl || 'http://host.docker.internal:5196/api/analysis/' + $json.body.jobId + '/email-callback' }}",
+        "url": "={{ $('Parse Email Body').first().json.callbackUrl || ('http://host.docker.internal:5196/api/analysis/' + $('Parse Email Body').first().json.jobId + '/email-callback') }}",
         "sendBody": true,
         "contentType": "raw",
         "rawContentType": "application/json",
-        "body": "{\n  \"success\": true\n}",
+        "body": "={\n  \"success\": true,\n  \"recipientEmail\": \"{{ $('Parse Email Body').first().json.recipientEmail }}\",\n  \"sentAt\": \"{{ new Date().toISOString() }}\"\n}",
         "options": {}
       },
-      "id": "3",
-      "name": "Callback ASP.NET",
+      "id": "email-node-3",
+      "name": "Callback to ASP.NET",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 3,
-      "position": [
-        640,
-        300
-      ]
+      "typeVersion": 4.1,
+      "position": [860, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"success\": true, \"message\": \"Email sent successfully\" }"
+      },
+      "id": "email-node-4",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1080, 300]
     }
   ],
   "connections": {
     "Webhook": {
-      "main": [
-        [
-          {
-            "node": "Send Email",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Parse Email Body", "type": "main", "index": 0 }]]
+    },
+    "Parse Email Body": {
+      "main": [[{ "node": "Send Email", "type": "main", "index": 0 }]]
     },
     "Send Email": {
-      "main": [
-        [
-          {
-            "node": "Callback ASP.NET",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Callback to ASP.NET", "type": "main", "index": 0 }]]
+    },
+    "Callback to ASP.NET": {
+      "main": [[{ "node": "Respond OK", "type": "main", "index": 0 }]]
     }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
   }
 }

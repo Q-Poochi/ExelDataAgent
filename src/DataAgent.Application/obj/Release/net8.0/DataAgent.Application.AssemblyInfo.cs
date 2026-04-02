@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DataAgent.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a9959161c298831e92e82dfea644c2df311a2eae")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+33f228d61bdf3fc18e3f33533b55316a01ffb09c")]
 [assembly: System.Reflection.AssemblyProductAttribute("DataAgent.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DataAgent.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
