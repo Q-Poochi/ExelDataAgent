@@ -133,6 +133,9 @@ services:
       - NODE_ENV=production
       - WEBHOOK_URL=http://localhost:5678/
       - GENERIC_TIMEZONE=Asia/Ho_Chi_Minh
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - CALLBACK_HMAC_SECRET=${CALLBACK_HMAC_SECRET}
+      - N8N_EXPRESSIONS_ALLOWED_ENV_VARS=GEMINI_API_KEY,CALLBACK_HMAC_SECRET
     ports:
       - "5678:5678"
     volumes:

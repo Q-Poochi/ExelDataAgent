@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.Extensions.Configuration;
 using DataAgent.Application.Interfaces;
 using DataAgent.Domain.Entities;
 using DataAgent.Domain.Exceptions;
@@ -18,19 +19,19 @@ public class StartAnalysisCommandHandler : IRequestHandler<StartAnalysisCommand,
 {
     private readonly IAnalysisJobRepository _jobRepository;
     private readonly IJobQueueService _jobQueue;
-    private readonly IFileStorageService _fileStorage;
     private readonly IUploadedFileRepository _fileRepository;
+    private readonly IConfiguration _config;
 
     public StartAnalysisCommandHandler(
         IAnalysisJobRepository jobRepository, 
         IJobQueueService jobQueue,
-        IFileStorageService fileStorage,
-        IUploadedFileRepository fileRepository)
+        IUploadedFileRepository fileRepository,
+        IConfiguration config)
     {
         _jobRepository = jobRepository;
         _jobQueue = jobQueue;
-        _fileStorage = fileStorage;
         _fileRepository = fileRepository;
+        _config = config;
     }
 
     public async Task<Guid> Handle(StartAnalysisCommand request, CancellationToken cancellationToken)
@@ -39,7 +40,10 @@ public class StartAnalysisCommandHandler : IRequestHandler<StartAnalysisCommand,
         if (fileInfo == null)
             throw new NotFoundException($"File with ID {request.FileId} not found");
 
-        string fileUrl = await _fileStorage.GetFileUrlAsync(fileInfo.StorageKey, TimeSpan.FromDays(7));
+        // Use the proxy endpoints instead of presigned MinIO URL.
+        // n8n runs inside Docker and cannot access MinIO presigned URLs signed with localhost.
+        var publicBaseUrl = _config["Api:PublicBaseUrl"] ?? _config["Api:BaseUrl"] ?? "http://host.docker.internal:5196";
+        string fileUrl = $"{publicBaseUrl.TrimEnd('/')}/api/files/{request.FileId}/data?maxRows=10000";
 
         var job = new AnalysisJob
         {
@@ -55,3 +59,4 @@ public class StartAnalysisCommandHandler : IRequestHandler<StartAnalysisCommand,
         return job.Id;
     }
 }
+

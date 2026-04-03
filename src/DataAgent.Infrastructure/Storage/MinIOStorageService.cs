@@ -13,15 +13,11 @@ public class MinIOStorageService : IFileStorageService
 {
     private readonly IMinioClient _minioClient;
     private readonly string _bucketName;
-    private readonly string _internalEndpoint;
-    private readonly string? _publicEndpoint;
 
     public MinIOStorageService(IMinioClient minioClient, IConfiguration configuration)
     {
         _minioClient = minioClient;
         _bucketName = configuration["MinIO:BucketName"] ?? "dataagent";
-        _internalEndpoint = configuration["MinIO:Endpoint"] ?? "localhost:9000";
-        _publicEndpoint = configuration["MinIO:PublicEndpoint"];
     }
 
     public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default)
@@ -51,16 +47,6 @@ public class MinIOStorageService : IFileStorageService
             .WithBucket(_bucketName)
             .WithObject(storageKey)
             .WithExpiry((int)expirySpan.TotalSeconds));
-
-        // Replace internal endpoint with public endpoint so n8n (inside Docker)
-        // can download the file via minio:9000 instead of localhost:9000.
-        // The .NET API uses localhost:9000 to connect, but n8n uses the Docker service name.
-        if (!string.IsNullOrEmpty(_publicEndpoint) && !string.IsNullOrEmpty(_internalEndpoint))
-        {
-            url = url.Replace($"http://{_internalEndpoint}", $"http://{_publicEndpoint}");
-            url = url.Replace($"https://{_internalEndpoint}", $"http://{_publicEndpoint}");
-        }
-
         return url;
     }
 

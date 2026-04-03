@@ -36,35 +36,30 @@
       "parameters": {
         "method": "GET",
         "url": "={{ $json.fileUrl }}",
-        "responseFormat": "file",
         "options": {}
       },
       "id": "node-2",
-      "name": "Download File",
+      "name": "Fetch Parsed Data",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
       "position": [680, 300]
     },
     {
       "parameters": {
-        "operation": "read",
-        "binaryPropertyName": "data",
-        "options": {
-          "headerRow": true
-        }
+        "jsCode": "const parsed = $json;\nconst headers = parsed.headers || [];\nconst rows = parsed.rows || [];\n\nconst sampleRows = rows.slice(0, 100).map(row => {\n  const obj = {};\n  headers.forEach((h, i) => { obj[h] = row[i] || ''; });\n  return obj;\n});\n\nconst webhookData = $('Parse Webhook Body').first().json;\n\nreturn [{\n  json: {\n    jobId: webhookData.jobId,\n    callbackUrl: webhookData.callbackUrl,\n    prompt: webhookData.prompt,\n    headers: headers,\n    sampleRows: sampleRows,\n    fullData: rows\n  }\n}];"
       },
-      "id": "node-3",
-      "name": "Extract Data",
-      "type": "n8n-nodes-base.spreadsheetFile",
+      "id": "node-4",
+      "name": "Format Data",
+      "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [900, 300]
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all();\nconst data = items.map(item => item.json);\nconst headers = Object.keys(data[0] || {});\nconst sampleRows = data.slice(0, 100);\n\nconst webhookData = $('Parse Webhook Body').first().json;\n\nreturn [{\n  json: {\n    jobId: webhookData.jobId,\n    callbackUrl: webhookData.callbackUrl,\n    prompt: webhookData.prompt,\n    headers: headers,\n    sampleRows: sampleRows,\n    fullData: data.map(row => headers.map(h => row[h]))\n  }\n}];"
+        "jsCode": "const headers = $json.headers;\nconst sampleRows = $json.sampleRows.slice(0, 5);\nconst prompt = $json.prompt;\n\nconst textPrompt = `Bạn là data analyst chuyên nghiệp. Phân tích schema CSV và sinh Python code dùng pandas + matplotlib.\nSchema columns: ${JSON.stringify(headers)}\nSample data (first 5 rows): ${JSON.stringify(sampleRows)}\nCâu hỏi phân tích: ${prompt}\n\nHãy trả về một JSON object (KHÔNG bọc trong markdown code block), với format chính xác:\n{ \"chartType\": \"bar|line|pie|scatter\", \"pythonCode\": \"...python code...\", \"analysisDescription\": \"...mô tả ngắn...\" }`;\n\nconst payload = {\n  contents: [\n    {\n      parts: [\n        { text: textPrompt }\n      ]\n    }\n  ],\n  generationConfig: {\n    maxOutputTokens: 2048,\n    temperature: 0.3\n  }\n};\n\nreturn [{ json: { geminiPayload: JSON.stringify(payload) } }];"
       },
-      "id": "node-4",
-      "name": "Format Data",
+      "id": "node-4b",
+      "name": "Build Gemini Payload",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [1120, 300]
@@ -72,11 +67,11 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={{ $env.GEMINI_API_KEY }}",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={{ $env.GEMINI_API_KEY }}",
         "sendBody": true,
         "contentType": "raw",
         "rawContentType": "application/json",
-        "body": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"Bạn là data analyst chuyên nghiệp. Phân tích schema CSV và sinh Python code dùng pandas + matplotlib.\\nSchema columns: {{ JSON.stringify($json.headers) }}\\nSample data (first 5 rows): {{ JSON.stringify($json.sampleRows.slice(0,5)) }}\\nCâu hỏi phân tích: {{ $json.prompt }}\\n\\nHãy trả về một JSON object (KHÔNG bọc trong markdown code block), với format chính xác:\\n{ \\\"chartType\\\": \\\"bar|line|pie|scatter\\\", \\\"pythonCode\\\": \\\"...python code...\\\", \\\"analysisDescription\\\": \\\"...mô tả ngắn...\\\" }\"\n        }\n      ]\n    }\n  ],\n  \"generationConfig\": {\n    \"maxOutputTokens\": 2048,\n    \"temperature\": 0.3\n  }\n}",
+        "body": "={{ $json.geminiPayload }}",
         "options": {}
       },
       "id": "node-5",
@@ -89,7 +84,7 @@
     },
     {
       "parameters": {
-        "jsCode": "let text = $json.candidates[0].content.parts[0].text;\n// Strip markdown code blocks if present\ntext = text.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(text);\n} catch (e) {\n  // Attempt to extract JSON from mixed text\n  const match = text.match(/\\{[\\s\\S]*\\}/);\n  if (match) {\n    parsed = JSON.parse(match[0]);\n  } else {\n    throw new Error('Cannot parse Gemini response: ' + text.substring(0, 200));\n  }\n}\n\nconst previous = $('Format Data').first().json;\nreturn [{\n  json: {\n    ...previous,\n    chartType: parsed.chartType,\n    pythonCode: parsed.pythonCode,\n    analysisDescription: parsed.analysisDescription\n  }\n}];"
+        "jsCode": "let text = $json.candidates[0].content.parts[0].text;\ntext = text.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(text);\n} catch (e) {\n  const match = text.match(/\\{[\\s\\S]*\\}/);\n  if (match) {\n    parsed = JSON.parse(match[0]);\n  } else {\n    throw new Error('Cannot parse Gemini response: ' + text.substring(0, 200));\n  }\n}\n\nconst previous = $('Format Data').first().json;\nreturn [{\n  json: {\n    ...previous,\n    chartType: parsed.chartType,\n    pythonCode: parsed.pythonCode,\n    analysisDescription: parsed.analysisDescription\n  }\n}];"
       },
       "id": "node-6",
       "name": "Parse Gemini JSON",
@@ -119,19 +114,29 @@
     },
     {
       "parameters": {
+        "jsCode": "const stats = $json.stats || {};\nconst analysisDesc = $('Parse Gemini JSON').first().json.analysisDescription || '';\n\nconst textPrompt = `Bạn là chuyên gia phân tích dữ liệu. Dựa vào kết quả thống kê sau đây, hãy viết một bản insights phân tích bằng tiếng Việt (3-5 đoạn văn), dễ hiểu cho người không chuyên kỹ thuật:\n\nKết quả thống kê: ${JSON.stringify(stats)}\n\nMô tả phân tích: ${analysisDesc}`;\n\nconst payload = {\n  contents: [\n    {\n      parts: [\n        { text: textPrompt }\n      ]\n    }\n  ],\n  generationConfig: {\n    maxOutputTokens: 1024,\n    temperature: 0.5\n  }\n};\n\nreturn [{ json: { geminiPayload: JSON.stringify(payload) } }];"
+      },
+      "id": "node-8a",
+      "name": "Build Insights Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2000, 300]
+    },
+    {
+      "parameters": {
         "method": "POST",
-        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={{ $env.GEMINI_API_KEY }}",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={{ $env.GEMINI_API_KEY }}",
         "sendBody": true,
         "contentType": "raw",
         "rawContentType": "application/json",
-        "body": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"Bạn là chuyên gia phân tích dữ liệu. Dựa vào kết quả thống kê sau đây, hãy viết một bản insights phân tích bằng tiếng Việt (3-5 đoạn văn), dễ hiểu cho người không chuyên kỹ thuật:\\n\\nKết quả thống kê: {{ JSON.stringify($json.stats) }}\\n\\nMô tả phân tích: {{ $('Parse Gemini JSON').first().json.analysisDescription }}\"\n        }\n      ]\n    }\n  ],\n  \"generationConfig\": {\n    \"maxOutputTokens\": 1024,\n    \"temperature\": 0.5\n  }\n}",
+        "body": "={{ $json.geminiPayload }}",
         "options": {}
       },
       "id": "node-8",
       "name": "Gemini Write Insights",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [2000, 300],
+      "position": [2220, 300],
       "retryOnFail": true,
       "maxTries": 2
     },
@@ -151,17 +156,17 @@
       "name": "Build PDF Report",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [2220, 300]
+      "position": [2440, 300]
     },
     {
       "parameters": {
-        "jsCode": "const crypto = require('crypto');\n// Must match Analysis:CallbackHmacSecret in appsettings.json\nconst secret = process.env.CALLBACK_HMAC_SECRET || 'SUPER_SECRET_HMAC_KEY_123456789012345';\n\nconst jobId = $('Format Data').first().json.jobId;\nconst pdfUrl = $json.pdfUrl;\n\nconst payload = JSON.stringify({\n  JobId: jobId,\n  Status: 2,\n  Progress: 100,\n  CurrentStep: 'finalize',\n  Message: 'Analysis Completed Successfully',\n  ResultUrl: pdfUrl\n});\n\nconst signature = crypto.createHmac('sha256', secret).update(payload).digest('base64');\n\nreturn [{\n  json: {\n    CallbackUrl: $('Format Data').first().json.callbackUrl,\n    PayloadString: payload,\n    Signature: signature\n  }\n}];"
+        "jsCode": "const crypto = require('crypto');\nconst secret = process.env.CALLBACK_HMAC_SECRET || 'SUPER_SECRET_HMAC_KEY_123456789012345';\n\nconst jobId = $('Format Data').first().json.jobId;\nconst pdfUrl = $json.pdfUrl;\n\nconst payload = JSON.stringify({\n  JobId: jobId,\n  Status: 2,\n  Progress: 100,\n  CurrentStep: 'finalize',\n  Message: 'Analysis Completed Successfully',\n  ResultUrl: pdfUrl\n});\n\nconst signature = crypto.createHmac('sha256', secret).update(payload).digest('base64');\n\nreturn [{\n  json: {\n    CallbackUrl: $('Format Data').first().json.callbackUrl,\n    PayloadString: payload,\n    Signature: signature\n  }\n}];"
       },
       "id": "node-10",
       "name": "Sign Callback",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2440, 300]
+      "position": [2660, 300]
     },
     {
       "parameters": {
@@ -185,7 +190,7 @@
       "name": "Send Success Callback",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [2660, 300]
+      "position": [2880, 300]
     },
     {
       "parameters": {},
@@ -235,15 +240,15 @@
       "main": [[{ "node": "Parse Webhook Body", "type": "main", "index": 0 }]]
     },
     "Parse Webhook Body": {
-      "main": [[{ "node": "Download File", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Fetch Parsed Data", "type": "main", "index": 0 }]]
     },
-    "Download File": {
-      "main": [[{ "node": "Extract Data", "type": "main", "index": 0 }]]
-    },
-    "Extract Data": {
+    "Fetch Parsed Data": {
       "main": [[{ "node": "Format Data", "type": "main", "index": 0 }]]
     },
     "Format Data": {
+      "main": [[{ "node": "Build Gemini Payload", "type": "main", "index": 0 }]]
+    },
+    "Build Gemini Payload": {
       "main": [[{ "node": "Gemini Generate Code", "type": "main", "index": 0 }]]
     },
     "Gemini Generate Code": {
@@ -253,6 +258,9 @@
       "main": [[{ "node": "Execute Chart Code", "type": "main", "index": 0 }]]
     },
     "Execute Chart Code": {
+      "main": [[{ "node": "Build Insights Payload", "type": "main", "index": 0 }]]
+    },
+    "Build Insights Payload": {
       "main": [[{ "node": "Gemini Write Insights", "type": "main", "index": 0 }]]
     },
     "Gemini Write Insights": {
